@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+/* 모눈종이 + 형광펜: 손풀이하던 종이 위에서 엔진이 대신 그려 주는 느낌 */
+:root {
+  --paper: #f4f7fb;
+  --grid: #dce4ef;
+  --ink: #1f2a44;
+  --pencil: #5f6b85;
+  --marker: #ffe066;
+  --fault: #d94a3a;
+  --hit: #2e8b6a;
+  --surface: #ffffff;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-grid: var(--grid);
+  --color-ink: var(--ink);
+  --color-pencil: var(--pencil);
+  --color-marker: var(--marker);
+  --color-fault: var(--fault);
+  --color-hit: var(--hit);
+  --color-surface: var(--surface);
+  --font-sans: var(--font-plex), "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+}
+
+body {
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
