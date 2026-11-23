@@ -80,4 +80,3 @@ npm test
 - `src/app/page.tsx`: 입력 화면
 - `src/app/simulate/`: 시뮬레이션 화면
 - `preview/`: 미리보기 HTML 빌드 스크립트
-- `.claude/skills/`: Claude Code용 ponytail 스킬

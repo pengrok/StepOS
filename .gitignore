@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Claude Code 개인 스킬 (레포에 넣지 않음)
+.claude/skills/ponytail*/
