@@ -10,10 +10,10 @@ function hasBatchim(word: string): boolean {
   if (code >= 0 && code <= 11171) return code % 28 !== 0;
   return /[lmnr]/i.test(c); // 영문은 대략 L, M, N, R로 끝나면 받침 소리
 }
-const josa = (word: string, withBatchim: string, without: string) =>
+export const josa = (word: string, withBatchim: string, without: string) =>
   `${word}${hasBatchim(word) ? withBatchim : without}`;
-const iGa = (w: string) => josa(w, "이", "가");
-const eulReul = (w: string) => josa(w, "을", "를");
+export const iGa = (w: string) => josa(w, "이", "가");
+export const eulReul = (w: string) => josa(w, "을", "를");
 
 const fmt = (v: number | null) => (v === null ? "다시 안 쓰임" : Number.isInteger(v) ? String(v) : v.toFixed(2));
 const METRIC: Record<string, string> = {

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { simulate, type PagingTrace, type ProblemSpec, type SchedulingTrace } from "@/engine";
 import { describePagingStep, describeSchedStep } from "@/lib/describe";
+import { explainPagingStep, explainSchedStep, type Explanation } from "@/lib/explain";
 import { PROCESS_COLORS } from "@/lib/samples";
 
 const ALG_NAME: Record<string, string> = {
@@ -42,6 +43,12 @@ export default function Simulator({ spec }: { spec: ProblemSpec }) {
     trace.kind === "scheduling"
       ? describeSchedStep(trace.steps[i], spec.kind === "scheduling" ? spec.quantum : undefined)
       : describePagingStep(trace.steps[i]);
+  const explanation =
+    trace.kind === "scheduling" && spec.kind === "scheduling"
+      ? explainSchedStep(spec, trace, i)
+      : trace.kind === "paging" && spec.kind === "paging"
+        ? explainPagingStep(spec, trace, i)
+        : null;
   const stepLabel =
     trace.kind === "scheduling" ? `시각 ${trace.steps[i].time}` : `참조 ${i + 1}번째 (페이지 ${trace.steps[i].page})`;
 
@@ -104,8 +111,36 @@ export default function Simulator({ spec }: { spec: ProblemSpec }) {
         </aside>
       </div>
 
+      {explanation && <ExplanationPanel label={stepLabel} explanation={explanation} />}
+
       {i === total - 1 && (trace.kind === "scheduling" ? <SchedResult trace={trace} /> : null)}
     </main>
+  );
+}
+
+function ExplanationPanel({ label, explanation }: { label: string; explanation: Explanation }) {
+  return (
+    <section aria-labelledby="explain-title" className="mt-8 border-2 border-ink bg-surface p-4 sm:p-6">
+      <h2 id="explain-title" className="text-xl font-bold">
+        해설: {label}
+      </h2>
+      <div className="mt-6 grid gap-6 md:grid-cols-2">
+        {explanation.sections.map((s) => (
+          <div key={s.title} className="min-w-0">
+            <h3 className="font-bold">{s.title}</h3>
+            <ul className="mt-2 space-y-1.5 leading-relaxed">
+              {s.lines.map((l, k) => (
+                <li key={k}>{l}</li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+      <details className="mt-6 border-t border-grid pt-4">
+        <summary className="cursor-pointer font-medium">이 알고리즘의 규칙</summary>
+        <p className="mt-2 max-w-3xl leading-relaxed text-pencil">{explanation.rule}</p>
+      </details>
+    </section>
   );
 }
 

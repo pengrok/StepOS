@@ -2,7 +2,7 @@
 
 스텝OS는 운영체제 문제를 한 단계씩 시뮬레이션하는 웹 앱입니다. CPU 스케줄링 6종(FCFS, SJF, SRTF, HRN, RR, 우선순위)과 페이지 교체 3종(FIFO, LRU, OPT)을 지원하고, 단계마다 무엇을 왜 골랐는지 보여 줍니다.
 
-- 미리보기: https://claude.ai/artifact/95GVQjSwwz5LX2S91ctDgX (공유받은 사람만 열 수 있음)
+- 미리보기: https://claude.ai/artifact/95GVQjSwwz5LX2S91ctDgX (링크가 있으면 누구나 열 수 있음)
 - 진행 상황과 결정 기록: [docs/progress.md](docs/progress.md)
 - 문제 조건·단계 기록 형식: [docs/data-format.md](docs/data-format.md)
 
@@ -27,7 +27,7 @@
 
 ## 테스트 돌리기
 
-엔진 테스트는 Silberschatz·Stallings 교재 예제의 평균 대기 시간, 평균 반환 시간, 페이지 부재 횟수를 확인합니다.
+엔진 테스트는 Silberschatz·Stallings 교재 예제의 평균 대기 시간, 평균 반환 시간, 페이지 부재 횟수를 확인합니다. 해설 테스트는 단계별 해설 문장이 엔진 값과 맞는지 확인합니다.
 
 ```bash
 npm test
@@ -36,7 +36,7 @@ npm test
 모두 통과하면 마지막에 다음 줄이 나옵니다.
 
 ```text
-      Tests  20 passed (20)
+      Tests  29 passed (29)
 ```
 
 엔진(`src/engine/`)을 고친 뒤에는 이 테스트가 통과하는지 확인합니다. 배포 전에는 `npm run build`도 실행합니다.
@@ -76,7 +76,8 @@ npm test
   - `diagnose.ts`: 내 풀이와 엔진 결과를 비교해 처음 어긋난 단계를 찾음
   - `engine.test.ts`: 교재 예제 테스트
 - `src/lib/schema.ts`: 문제 조건 형식(zod). AI 해석 결과와 직접 입력을 모두 이 형식으로 검증합니다.
-- `src/lib/describe.ts`: 단계 기록을 그대로 옮긴 기본 설명 문장
+- `src/lib/describe.ts`: 단계 기록을 한 줄로 옮긴 요약 문장
+- `src/lib/explain.ts`: 시뮬레이션 화면 아래의 단계별 해설(무슨 일이 있었나, 왜 그렇게 되나, 준비 큐 순서, 다음 단계). 엔진 값만으로 문장을 만듭니다.
 - `src/app/page.tsx`: 입력 화면
 - `src/app/simulate/`: 시뮬레이션 화면
 - `preview/`: 미리보기 HTML 빌드 스크립트
