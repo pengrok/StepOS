@@ -6,6 +6,10 @@
 - 단계 기록 타입: `src/engine/types.ts`
 - 엔진 호출: `simulate(spec)` (`src/engine/index.ts`)
 
+## AI 문제 해석 응답
+
+`POST /api/parse`(multipart: `text`, `image`)는 성공하면 `{ spec, notes }`를 돌려줍니다. `spec`은 아래 문제 조건 형식이고, `spec.assumptions`에 문제에 없어서 기본값을 쓴 규칙이 들어 있습니다. `notes`는 AI가 확실하지 않았던 점입니다. 실패하면 `{ error }`와 함께 400(입력 없음), 413(너무 큼), 415(사진 형식), 422(해석 실패), 429(사용량 초과), 502(AI 응답 없음), 503(키 없음)을 돌려줍니다.
+
 ## 문제 조건 검증하기
 
 AI가 만든 문제 조건이든 직접 입력한 조건이든, 엔진에 넣기 전에 `ProblemSpecSchema`로 검증합니다. 빠진 규칙 옵션에는 이때 기본값이 채워집니다.

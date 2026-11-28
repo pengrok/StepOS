@@ -16,7 +16,38 @@ export default function InputPage() {
   const [paging, setPaging] = useState<PagingSpec>(SAMPLE_PAGING);
   const [refsText, setRefsText] = useState(SAMPLE_PAGING.references.join(" "));
   const [errors, setErrors] = useState<string[]>([]);
-  const [aiNote, setAiNote] = useState("");
+  const [problemText, setProblemText] = useState("");
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [ai, setAi] = useState<
+    { state: "idle" } | { state: "loading" } | { state: "done"; notes: string[]; assumptions: string[] } | { state: "error"; message: string }
+  >({ state: "idle" });
+
+  // 문제 글·사진을 AI에 보내 조건 표를 채운다. 사용자는 채워진 표를 확인하고 고친다.
+  const fillWithAi = async () => {
+    if (!problemText.trim() && !photo) return setAi({ state: "error", message: "문제 글을 넣거나 사진을 올려 주세요." });
+    setAi({ state: "loading" });
+    const body = new FormData();
+    body.set("text", problemText);
+    if (photo) body.set("image", photo);
+    try {
+      const res = await fetch("/api/parse", { method: "POST", body });
+      const data = await res.json().catch(() => ({}));
+      const parsed = ProblemSpecSchema.safeParse(data.spec);
+      if (!res.ok || !parsed.success)
+        return setAi({ state: "error", message: data.error ?? "AI 문제 해석을 쓸 수 없습니다. 오른쪽 표에 직접 입력하세요." });
+      const spec = parsed.data;
+      setKind(spec.kind);
+      if (spec.kind === "scheduling") setSched(spec);
+      else {
+        setPaging(spec);
+        setRefsText(spec.references.join(" "));
+      }
+      setErrors([]);
+      setAi({ state: "done", notes: Array.isArray(data.notes) ? data.notes.map(String) : [], assumptions: spec.assumptions });
+    } catch {
+      setAi({ state: "error", message: "AI 문제 해석에 연결할 수 없습니다. 오른쪽 표에 직접 입력하세요." });
+    }
+  };
 
   const run = () => {
     const spec = kind === "scheduling" ? sched : { ...paging, references: refsText.split(/[\s,]+/).filter(Boolean).map(Number) };
@@ -55,27 +86,49 @@ export default function InputPage() {
           <textarea
             id="problem"
             rows={9}
+            value={problemText}
+            onChange={(e) => setProblemText(e.target.value)}
+            maxLength={4000}
             className="mt-2 w-full resize-y border border-pencil/40 bg-paper p-3"
             placeholder="예) 다음 프로세스를 SRTF로 스케줄링할 때 평균 대기 시간을 구하시오. P1 도착 0 실행 8, P2 도착 1 실행 4 …"
           />
-          <div className="mt-3 flex flex-wrap gap-2">
-            <label className="cursor-pointer border-2 border-ink bg-surface px-4 py-2 font-medium hover:bg-marker/60">
-              사진 올리기
-              <input type="file" accept="image/*" className="sr-only" onChange={() => setAiNote("x")} />
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <label className="cursor-pointer border-2 border-ink bg-surface px-4 py-2 font-medium hover:bg-marker/60 has-[:focus-visible]:outline has-[:focus-visible]:outline-3">
+              {photo ? "사진 바꾸기" : "사진 올리기"}
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="sr-only"
+                onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
+              />
             </label>
             <button
               type="button"
-              className="border-2 border-ink bg-surface px-4 py-2 font-medium hover:bg-marker/60"
-              onClick={() => setAiNote("x")}
+              disabled={ai.state === "loading"}
+              className="border-2 border-ink bg-ink px-4 py-2 font-medium text-paper disabled:opacity-60"
+              onClick={fillWithAi}
             >
-              AI로 조건 채우기
+              {ai.state === "loading" ? "AI가 읽는 중…" : "AI로 조건 채우기"}
             </button>
           </div>
-          {aiNote && (
-            <p role="status" className="mt-3 text-sm text-pencil">
-              AI 문제 해석은 아직 연결되지 않았습니다. 지금은 오른쪽 표에 조건을 직접 입력하세요.
+          {photo && (
+            <p className="mt-2 flex items-center gap-2 text-sm text-pencil">
+              <span className="min-w-0 truncate">사진: {photo.name}</span>
+              <button type="button" className="underline" onClick={() => setPhoto(null)}>
+                빼기
+              </button>
             </p>
           )}
+          <div role="status" aria-live="polite">
+            {ai.state === "error" && <p className="mt-3 text-sm text-fault">{ai.message}</p>}
+            {ai.state === "done" && (
+              <div className="mt-4 border-l-4 border-marker bg-paper p-3 text-sm leading-relaxed">
+                <p className="font-bold">AI가 오른쪽 조건 표를 채웠습니다. 문제와 같은지 확인하고, 다르면 고친 뒤 실행하세요.</p>
+                {ai.assumptions.length > 0 && <p className="mt-2">문제에 없어서 적용한 규칙: {ai.assumptions.join(", ")}</p>}
+                {ai.notes.length > 0 && <p className="mt-2">AI가 확실하지 않았던 점: {ai.notes.join(" / ")}</p>}
+              </div>
+            )}
+          </div>
         </section>
 
         <section className="border-2 border-ink bg-surface p-5">

@@ -11,6 +11,9 @@
     "preview": "node preview/build.mjs"
   },
   "dependencies": {
+    "@ai-sdk/google": "^4.0.128",
+    "@ai-sdk/openai": "^4.0.125",
+    "ai": "^7.0.184",
     "next": "16.4.6",
     "react": "19.3.0",
     "react-dom": "19.3.0",
